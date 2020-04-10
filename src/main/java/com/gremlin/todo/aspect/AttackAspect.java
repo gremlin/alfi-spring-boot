@@ -1,6 +1,9 @@
 package com.gremlin.todo.aspect;
 
+import com.gremlin.GremlinService;
 import com.gremlin.TrafficCoordinates;
+import com.gremlin.todo.GremlinTrafficCoordinatesBuilder;
+import com.gremlin.todo.config.FeatureFlag;
 import com.gremlin.todo.config.GremlinConfig;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -13,38 +16,47 @@ import java.util.*;
 @Component
 public class AttackAspect {
     private final GremlinConfig gremlinConfig;
-    private List<TrafficCoordinates> trafficCoordinatesList = new ArrayList<>();
+    private final GremlinTrafficCoordinatesBuilder trafficCoordinatesBuilder;
+    private final FeatureFlag featureFlag;
+    private final GremlinService gremlinService;
+    private Map<TrafficCoordinates, GremlinService> gremlinServiceMap = new HashMap<>();
 
     @Autowired
-    public AttackAspect(GremlinConfig gremlinConfig) {
+    public AttackAspect(GremlinConfig gremlinConfig, GremlinTrafficCoordinatesBuilder trafficCoordinatesBuilder, FeatureFlag featureFlag, GremlinService gremlinService) {
         this.gremlinConfig = gremlinConfig;
+        this.trafficCoordinatesBuilder = trafficCoordinatesBuilder;
+        this.featureFlag = featureFlag;
+        this.gremlinService = gremlinService;
     }
 
     @Before("@annotation(attack)")
-    public void attack(Attack attack) throws Throwable {
-        TrafficCoordinates trafficCoordinates = setupAttack(attack.type(), attack.fields());
-        executeAttack(trafficCoordinates);
+    public void attack(Attack attack) {
+        executeAttack(createTrafficCoordinates(attack.type(), attack.fields()));
     }
 
-    TrafficCoordinates setupAttack(String type, String[] fields) {
+    TrafficCoordinates createTrafficCoordinates(String type, String[] fields) {
         Map<String, String> map = toMap(fields);
-        TrafficCoordinates trafficCoordinates = new TrafficCoordinates.Builder()
+        TrafficCoordinates trafficCoordinates = trafficCoordinatesBuilder
                 .withType(type)
                 .build();
-        map.forEach((key, value) -> {
-            trafficCoordinates.putField(key, value);
-        });
-        if (!trafficCoordinatesList.contains(trafficCoordinates)) {
-            trafficCoordinatesList.add(trafficCoordinates);
-        }
+        map.forEach(trafficCoordinates::putFieldIfAbsent);
+
         return trafficCoordinates;
     }
 
+    /**
+     * The GremlinService should be a singleton and can map to only one experiment (TrafficCoordinates).
+     * This method will check if the trafficCoordinates passed in is already tied to an existing GremlinService, if not, create a new GremlinService
+     * then apply the attack. If so, then apply the attack using the trafficCoordinates, corresponding GremlinService.
+     * @param trafficCoordinates
+     */
     void executeAttack(TrafficCoordinates trafficCoordinates) {
-        gremlinConfig.gremlinService().applyImpact(trafficCoordinates);
+        if (featureFlag.isAlfiEnabled()) {
+
+            gremlinService.applyImpact(trafficCoordinates);
+
+        }
     }
-
-
 
     private Map<String, String> toMap(String[] in) {
         Map<String, String> map = new HashMap<>();

@@ -4,6 +4,7 @@ import com.gremlin.todo.dto.ToDoDto;
 import com.gremlin.todo.model.ToDo;
 import com.gremlin.todo.repository.ToDoRepository;
 import de.flapdoodle.embed.process.collections.Collections;
+import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,34 +45,37 @@ public class ToDoServiceTest {
     @Test
     public void findOneDtoedById() {
         ToDo toDo = new ToDo("A Title", "A Description");
+        ObjectId id = new ObjectId();
+        toDo.setId(id);
         ToDoDto toDoDto = new ToDoDto(toDo.getTitle(), toDo.getDescription());
         BeanUtils.copyProperties(toDo, toDoDto);
-        Mockito.when(toDoRepository.findOneDtoedById(toDo.getId())).thenReturn(toDoDto);
+        Mockito.when(toDoRepository.findOneDtoedById(new ObjectId(toDo.getId()))).thenReturn(toDoDto);
 
-        assertThat(toDoService.findOneDtoedById(toDo.getId()), is(toDoDto));
-        verify(toDoRepository, times(2)).findOneDtoedById(toDo.getId());
+        assertThat(toDoService.findOneDtoedById(new ObjectId(toDo.getId())), is(toDoDto));
+        verify(toDoRepository, times(2)).findOneDtoedById(id);
     }
 
     @Test
     public void save() {
         ToDo toDo = new ToDo("A Title", "A Description");
-        ToDoDto toDoDto = new ToDoDto(toDo.getTitle(), toDo.getDescription());
-        BeanUtils.copyProperties(toDo, toDoDto);
         Mockito.when(toDoRepository.save(any())).thenReturn(toDo);
 
-        assertThat(toDoService.save(toDoDto), is(toDoDto));
+        assertThat(toDoService.save(toDo), is(toDo));
         verify(toDoRepository, times(1)).save(any());
     }
 
     @Test
     public void update() {
         ToDo toDo = new ToDo("A Title", "A Description");
-        ToDoDto toDoDto = new ToDoDto(toDo.getTitle(), toDo.getDescription());
+        ObjectId id = new ObjectId();
+        toDo.setId(id);
+        ToDo toDoDto = new ToDo(toDo.getTitle(), toDo.getDescription());
+        toDoDto.setId(new ObjectId(toDo.getId()));
         BeanUtils.copyProperties(toDo, toDoDto);
         Mockito.when(toDoRepository.save(any())).thenReturn(toDo);
         Mockito.when(toDoRepository.findById(any())).thenReturn(Optional.of(toDo));
 
-        assertThat(toDoService.update(toDo.getId(), toDoDto), is(toDoDto));
+        assertThat(toDoService.update(id, toDoDto), is(toDoDto));
         verify(toDoRepository, times(1)).findById(any());
         verify(toDoRepository, times(1)).save(any());
     }
@@ -80,10 +84,8 @@ public class ToDoServiceTest {
     public void deleteAll() {
         Mockito.doNothing().when(toDoRepository).deleteAll();
         ToDo toDo = new ToDo("A Title", "A Description");
-        ToDoDto toDoDto = new ToDoDto(toDo.getTitle(), toDo.getDescription());
-        BeanUtils.copyProperties(toDo, toDoDto);
         Mockito.when(toDoRepository.save(any())).thenReturn(toDo);
-        toDoService.save(toDoDto);
+        toDoService.save(toDo);
         toDoService.deleteAll();
         verify(toDoRepository, times(1)).deleteAll();
 
@@ -93,12 +95,12 @@ public class ToDoServiceTest {
     public void delete() {
         Mockito.doNothing().when(toDoRepository).delete(any());
         ToDo toDo = new ToDo("A Title", "A Description");
-        ToDoDto toDoDto = new ToDoDto(toDo.getTitle(), toDo.getDescription());
-        BeanUtils.copyProperties(toDo, toDoDto);
+        ObjectId id = new ObjectId();
+        toDo.setId(id);
         Mockito.when(toDoRepository.save(any())).thenReturn(toDo);
         Mockito.when(toDoRepository.findById(any())).thenReturn(Optional.of(toDo));
-        toDoService.save(toDoDto);
-        toDoService.delete(toDoDto.getId(), toDoDto);
+        toDoService.save(toDo);
+        toDoService.delete(id);
         verify(toDoRepository, times(1)).delete(any());
 
     }

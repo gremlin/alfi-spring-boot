@@ -1,7 +1,7 @@
 package com.gremlin.todo.aspect;
 
 import com.gremlin.TrafficCoordinates;
-import com.gremlin.todo.dto.ToDoDto;
+import com.gremlin.todo.model.ToDo;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -24,10 +24,10 @@ public class AdvancedAttackAspect {
     }
 
     @Before("@annotation(advancedAttack)")
-    public void setUpAttack(JoinPoint joinPoint, AdvancedAttack advancedAttack) throws Throwable {
-        ToDoDto args = (ToDoDto) joinPoint.getArgs()[0];
+    public void setUpAttack(JoinPoint joinPoint, AdvancedAttack advancedAttack) {
+        ToDo args = (ToDo) joinPoint.getArgs()[0];
         LOG.info(args.toString());
-        TrafficCoordinates trafficCoordinates = attackAspect.setupAttack(advancedAttack.type(), advancedAttack.fields());
+        TrafficCoordinates trafficCoordinates = attackAspect.createTrafficCoordinates(advancedAttack.type(), advancedAttack.fields());
         attackAspect.executeAttack(trafficCoordinates);
     }
 }

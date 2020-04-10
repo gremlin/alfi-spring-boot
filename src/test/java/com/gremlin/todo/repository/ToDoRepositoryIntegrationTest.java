@@ -4,6 +4,7 @@ import com.gremlin.todo.dto.ToDoDto;
 import com.gremlin.todo.model.ToDo;
 import com.gremlin.todo.projection.ToDoProjection;
 import com.gremlin.todo.projection.ToDoSummary;
+import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,14 +68,14 @@ public class ToDoRepositoryIntegrationTest {
 
 	@Test
 	public void projectsIndividualDynamically() {
-		ToDoSummary result = todos.findProjectedById(thingOne.getId(), ToDoSummary.class);
+		ToDoSummary result = todos.findProjectedById(new ObjectId(thingOne.getId()), ToDoSummary.class);
 		assertThat(result, is(notNullValue()));
 		assertThat(result.getToDoSummary(), containsString(String.format("%s\\n%s\\n%s", this.thingOne.getTitle(), this.thingOne.getDescription(), this.thingOne.isDone())));
 	}
 
 	@Test
 	public void projectIndividualInstance() {
-		ToDoProjection result = todos.findProjectedById(thingOne.getId());
+		ToDoProjection result = todos.findProjectedById(new ObjectId(thingOne.getId()));
 		assertThat(result, is(notNullValue()));
 		assertThat(result.getTitle(), is(this.thingOneTitle));
 		assertThat(((TargetAware) result).getTarget(), is(instanceOf(ToDo.class)));

@@ -29,5 +29,6 @@ build/
 
 ### VS Code ###
 .vscode/
-
+/gremlin/*.pem
+.env
 .DS_Store

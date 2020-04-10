@@ -3,6 +3,7 @@ package com.gremlin.todo.controller;
 import com.gremlin.todo.aspect.AdvancedAttack;
 import com.gremlin.todo.aspect.Attack;
 import com.gremlin.todo.dto.ToDoDto;
+import com.gremlin.todo.model.ToDo;
 import com.gremlin.todo.service.ToDoService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +25,16 @@ public class ToDoController {
     }
 
     @Attack(type = "ToDoController", fields = {"method=getAllToDos"})
-    @GetMapping
-    public Collection<ToDoDto> getAllToDos() {
-        return toDoService.findAllDtoedBy();
+    @GetMapping("/all")
+    public Collection<ToDo> getAllToDos() {
+        return toDoService.findAll();
     }
+
+    @GetMapping
+    public Collection<ToDo> findAllIncomplete() {
+        return toDoService.findAllIncomplete();
+    }
+
     @Attack(type = "ToDoController", fields = {"method=findToDoById"})
     @GetMapping(path = "{id}")
     public HttpEntity<ToDoDto> findToDoById(@PathVariable ObjectId id) {
@@ -36,21 +43,21 @@ public class ToDoController {
 
     @AdvancedAttack(type = "ToDoController", fields = {"method=createToDo"})
     @PostMapping
-    public HttpEntity<ToDoDto> createToDo(@RequestBody ToDoDto toDoDto) {
-        toDoDto = toDoService.save(toDoDto);
-        return new ResponseEntity<>(toDoDto, HttpStatus.CREATED);
+    public HttpEntity<ToDo> createToDo(@RequestBody ToDo toDo) {
+        toDo = toDoService.save(toDo);
+        return new ResponseEntity<>(toDo, HttpStatus.CREATED);
 
     }
 
     @PutMapping(path = "{id}")
-    public HttpEntity<ToDoDto> updateToDo(@PathVariable ObjectId id, @RequestBody ToDoDto toDoDto) {
+    public HttpEntity<ToDo> updateToDo(@PathVariable ObjectId id, @RequestBody ToDo toDoDto) {
         toDoDto = toDoService.update(id, toDoDto);
         return new ResponseEntity<>(toDoDto, HttpStatus.OK);
     }
 
     @DeleteMapping(path = "{id}")
-    public HttpEntity<String> deleteToDo(@PathVariable ObjectId id, @RequestBody ToDoDto toDoDto) {
-        toDoService.delete(id, toDoDto);
+    public HttpEntity<String> deleteToDo(@PathVariable ObjectId id, @RequestBody(required = false) ToDo toDo) {
+        toDoService.delete(id);
         return new ResponseEntity<>("Deleted", HttpStatus.OK);
     }
 }

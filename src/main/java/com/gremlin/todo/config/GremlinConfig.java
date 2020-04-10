@@ -34,20 +34,12 @@ public class GremlinConfig {
     }
 
 
-    /**
-     * Used just to initilaize ALFI with the control plane
-     * @return
-     */
-    @Bean
-    public TrafficCoordinates trafficCoordinates() {
-        return new TrafficCoordinates.Builder()
-                .withType(String.format("%s%s", getClass().getSimpleName(), TrafficCoordinates.class.getSimpleName()))
-                .build();
-    }
-
     @PostConstruct
     public void init() {
         // register gremlin with the control plane when the application loads
-        gremlinService().applyImpact(trafficCoordinates());
+
+        gremlinService().applyImpact(new TrafficCoordinates.Builder()
+                .withType("GremlinInit")
+                .build());
     }
 }

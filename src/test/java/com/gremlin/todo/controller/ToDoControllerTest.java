@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -28,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestPropertySource(properties = {"GREMLIN_ALFI_ENABLED=false"})
 public class ToDoControllerTest {
 
     @Autowired
@@ -59,31 +61,31 @@ public class ToDoControllerTest {
     @Test
     public void putShouldUpdateExistingToDo() throws Exception {
         String todoString = "{\"title\": \"a todo title\", \"description\": \"a todo description\", \"done\": false}";
-        ToDoDto toDoDto = objectMapper.readValue(mockMvc.perform(post("/")
+        ToDo todo = objectMapper.readValue(mockMvc.perform(post("/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(todoString))
-                .andReturn().getResponse().getContentAsString(), ToDoDto.class);
+                .andReturn().getResponse().getContentAsString(), ToDo.class);
 
-        todoString = "{\"title\": \"a todo title\", \"description\": \"a todo description\", \"done\": true}";
+        todoString = String.format("{ \"id\": \"%s\", \"title\": \"a todo title\", \"description\": \"a todo description\", \"done\": true}", todo.getId());
 
-        toDoDto = objectMapper.readValue(mockMvc.perform(put("/"+toDoDto.getId().toString())
+        todo = objectMapper.readValue(mockMvc.perform(put("/"+todo.getId().toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(todoString))
-                .andReturn().getResponse().getContentAsString(), ToDoDto.class);
+                .andReturn().getResponse().getContentAsString(), ToDo.class);
 
-        assertThat(toDoDto.isDone(), is(true));
+        assertThat(todo.isDone(), is(true));
 
     }
 
     @Test
     public void getShouldReturnAllToDos() throws Exception {
-        List<ToDoDto> todoList = new ArrayList<>();
-        todoList.add(new ToDoDto(firstToDoTitle, firstToDoDescription));
-        todoList.add(new ToDoDto(secondToDoTitle, secondToDoDescription));
+        List<ToDo> todoList = new ArrayList<>();
+        todoList.add(new ToDo(firstToDoTitle, firstToDoDescription));
+        todoList.add(new ToDo(secondToDoTitle, secondToDoDescription));
 
         toDoService.save(todoList.get(0));
         toDoService.save(todoList.get(1));
-        MvcResult result = this.mockMvc.perform(get("/")).andDo(print()).andReturn();
+        MvcResult result = this.mockMvc.perform(get("/all")).andDo(print()).andReturn();
 
         List<ToDo> actual = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<List<ToDo>>() {});
 

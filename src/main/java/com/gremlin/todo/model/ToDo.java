@@ -10,10 +10,10 @@ import org.springframework.util.Assert;
 @Document
 public class ToDo {
     @Id
-    private ObjectId id = new ObjectId();
+    private ObjectId id;
     private String title;
     private String description;
-    private boolean done = false;
+    private boolean done;
 
     public ToDo(String title, String description) {
         Assert.hasText(title, "title must not be null");
@@ -21,4 +21,8 @@ public class ToDo {
         this.title = title;
         this.description = description;
     }
+
+   public String getId() {
+        return id != null ? id.toString() : null;
+   }
 }

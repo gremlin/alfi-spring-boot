@@ -16,6 +16,8 @@ public interface ToDoRepository extends CrudRepository<ToDo, ObjectId> {
     Collection<ToDoProjection> findAllProjectedBy();
     Collection<ToDoSummary> findAllSummarizedBy();
     Collection<ToDoDto> findAllDtoedBy();
+    Collection<ToDo> findAll();
+    Collection<ToDo> findByDoneFalse();
     ToDoDto findOneDtoedById(ObjectId id);
     <T> Collection<T> findByTitle(String title, Class<T> projection);
     ToDoProjection findProjectedById(ObjectId id);

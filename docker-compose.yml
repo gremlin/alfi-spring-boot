@@ -4,16 +4,19 @@ services:
   todo:
     build:
       context: .
+    image: markfranklin/todo:v1
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - GREMLIN_ALFI_IDENTIFIER=Dockerized-ToDo
+      - GREMLIN_TEAM_ID=${GREMLIN_TEAM_ID}
+      - GREMLIN_ALFI_ENABLED=${GREMLIN_ALFI_ENABLED}
+      - GREMLIN_TEAM_CERTIFICATE_OR_FILE=file:///credentials/cert.pem
+      - GREMLIN_TEAM_PRIVATE_KEY_OR_FILE=file:///credentials/priv.pem
+      - DB_PWD=$DB_PWD
     ports:
       - 8080:8080
-    depends_on:
-      - mongo
-  mongo:
-    image: mongo:latest
-    ports:
-      - 27017:27017
+    volumes:
+      - ~/.gremlin:/credentials
 
 
-
+#"-Dspring.profiles.active=dev"
