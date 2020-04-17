@@ -1,0 +1,6 @@
+---
+applications:
+  - name: todo
+    buildpacks:
+      - java_buildpack_offline
+    path: target/to-do-0.0.1-SNAPSHOT.jar
